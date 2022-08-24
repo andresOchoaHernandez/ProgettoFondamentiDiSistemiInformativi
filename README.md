@@ -63,12 +63,38 @@ Nella mia opinione, la causa della presenza di questi record è dovuta a:
 * Eventi temporanei realizzati all'interno di PointOfInterest
 
 Dato che la maggiorparte del dataset rispetta le entità e le relazioni nello schema concettuale, ho deciso di modificarlo, in modo che tutti i record lo rispettino:  
-* Ho eliminato i record (7) nel file **dati_2015.csv** in cui il dispositivo 28 ha registrato ingressi all'Arena
-* I record contententi "[..],Centro Fotografia,23,[..]" sono diventati "[..],Centro Fotografia,102,[..]"
-* I record contententi "[..],Duomo,23,[..]" sono diventati "[..],Duomo,103,[..]"
-* I record contententi "[..],Museo Miniscalchi,29,[..]" sono diventati "[..],Museo Miniscalchi,32,[..]" perché 32 è stato il dispositivo "storico" per quel pointofinterest
+* Ho eliminato i record (7) nel file ```dati_2015.csv``` in cui il dispositivo 28 ha registrato ingressi all'Arena
+* I record contententi ```[..],Centro Fotografia,23,[..]``` sono diventati ```[..],Centro Fotografia,102,[..]```
+* I record contententi ```[..],Duomo,23,[..]``` sono diventati ```[..],Duomo,103,[..]```
+* I record contententi ```[..],Museo Miniscalchi,29,[..]``` sono diventati ```[..],Museo Miniscalchi,32,[..]``` perché 32 è stato il dispositivo "storico" per quel pointofinterest
 
 # Schema fisico per DynamoDB
 <p align="center">
   <img src="schemafisicoveronacard.png" />
 </p>
+
+## Tabelle
+Ho deciso di racchiudere i dati in due tabelle, che rappresentano i due principali metodi di accesso ai dati
+
+### VeronaCards
+Questa tabella contiene due tipi di item:
+* Le veronacards : Identificate dal codice seriale univoco, contengono anche la data di attivazione ed il profilo
+* Gli ingressi : Identificati dal codice seriale univoco e dal dispositivo su cui si è passata la veronacard, contiene anche la data e l'ora dell'ingresso
+
+### Dispositivi
+Questa tabella contiene solo la lista di dispositivi, identificati dal codice e dal nome del pointOfInterest
+
+# Implementazione
+## Installazione di DynamoDBLocal
+Ho scelto di installare DynamoDBLocal in quanto è uno strumento autocontenuto che permette agli sviluppatori di esplorare le varie features offerte da DynamoDB, e permette in modo molto semplice e veloce di avere un database funzionante. Bastano pochi comandi:  
+```console
+user@desktop:~$ mkdir dynamoDBLocal
+user@desktop:~$ cd dynamoDBLocal
+user@desktop:~$ wget http://dynamodb-local.s3-website-us-west-2.amazonaws.com/dynamodb_local_latest.tar.gz
+user@desktop:~$ tar xzf dynamodb_local_latest.tar.gz
+user@desktop:~$ java -Djava.library.path=./DynamoDBLocal_lib/ -jar DynamoDBLocal.jar
+```
+A questo punto è attivo il servizio sulla porta ```8000``` che ci permette di interagire con il database.
+
+## Linguaggio di programmazione e client
+Come linguaggio di programmazione ho scelto ```python``` e come client per interagire con il database ho scelto ```boto3```
