@@ -22,3 +22,4 @@ Tutti i file rispettano la stessa struttura, in cui ogni record contiene:
 - Profilo della VeronaCard (24-48-72 Ore)
 
 ## Schema concettuale del dataset
+![image info]("schema concettuale veronacard.png".png)
