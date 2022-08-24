@@ -98,3 +98,57 @@ A questo punto è attivo il servizio sulla porta ```8000``` che ci permette di i
 
 ## Linguaggio di programmazione e client
 Come linguaggio di programmazione ho scelto ```python``` e come client per interagire con il database ho scelto ```boto3```
+
+## Schema delle tabelle
+In DynamoDB è obbligatorio fornire solo lo schema delle chiavi (partition key e sort key) quando si crea una tabella. Di seguito gli schemi (in formato json) per le due tabelle previste dal modello fisico
+### VeronaCards
+KeySchema  
+```javascript
+{
+    'AttributeName': 'CodiceSeriale',
+    'KeyType'      : 'HASH'
+}
+{
+    'AttributeName': 'ChiaveOrdinamento',
+    'KeyType'      : 'RANGE'
+}
+```
+AttributeDefinitions  
+```javascript
+{
+    'AttributeName': 'CodiceSeriale',
+    'AttributeType': 'S'
+}
+{
+    'AttributeName': 'ChiaveOrdinamento',
+    'AttributeType': 'S'
+}
+```
+In questo caso la partition key è ```CodiceSeriale``` mentre la sort key è ```ChiaveOrdinamento```.
+Per gli item che rappresentano le veronacards la sort key assumerà il valore ```Info```, mentre per gli item che rappresentano gli ingressi la sort key sarà il codice del dispositivo su cui è stata passata la veronacard.
+
+## Dispositivi
+KeySchema
+```javascript
+{
+    'AttributeName': 'Codice',
+    'KeyType'      : 'HASH'
+}
+{
+    'AttributeName': 'Name',
+    'KeyType'      : 'RANGE'
+}
+```
+AttributeDefinitions
+```javascript
+{
+    'AttributeName': 'Codice',
+    'AttributeType': 'S'
+}
+{
+    'AttributeName': 'Name',
+    'AttributeType': 'S'
+}
+```
+In questo caso la partition key è ```Codice``` mentre la sort key è ```Name```.
+Ogni item in questa tabella consta solo di partition e sort key.
