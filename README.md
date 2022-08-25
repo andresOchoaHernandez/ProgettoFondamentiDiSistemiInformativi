@@ -167,3 +167,84 @@ Indice secondario globale
       }]
 }               
 ```
+## Query Semplici
+### Ottenere una certa veronacard
+```python
+dynamoDbClient.Table('VeronaCards').get_item(
+  TableName='VeronaCards',
+  Key={'CodiceSeriale':'04FA80523F3880','ChiaveOrdinamento':'Info'}
+)
+```
+risultato
+```javascript
+{'ChiaveOrdinamento': 'Info', 'CodiceSeriale': '04FA80523F3880', 'Profilo': '72 Ore', 'DataAttivazione': '30-12-14'}
+```
+### Ingressi di una certa veronacard con un certo dispositivo
+```python
+dynamoDbClient.Table('VeronaCards').query(
+  TableName='VeronaCards',
+  KeyConditionExpression=Key('CodiceSeriale').eq('04FA80523F3880')&Key('ChiaveOrdinamento').begins_with('40')
+)
+```
+risultato
+```javascript
+{'CodiceSeriale': '04FA80523F3880', 'ChiaveOrdinamento': '40_30-12-14_16:34:00'}
+```
+### Ingressi in un certo dispositivo
+```python
+dynamoDbClient.Table('VeronaCards').scan(
+  FilterExpression=Attr('ChiaveOrdinamento').begins_with('40'),
+  Limit=800
+)
+```
+risultato
+```javascript
+{'CodiceSeriale': '0459C2523F3880', 'ChiaveOrdinamento': '40_30-12-14_17:01:53'}
+{'CodiceSeriale': '046E45E2185080', 'ChiaveOrdinamento': '40_30-12-18_18:06:53'}
+{'CodiceSeriale': '04DA75BA7B3F80', 'ChiaveOrdinamento': '40_30-12-16_17:52:16'}
+{'CodiceSeriale': '04F602F2185084', 'ChiaveOrdinamento': '40_31-10-20_14:54:19'}
+{'CodiceSeriale': '04E3A64A216280', 'ChiaveOrdinamento': '40_05-03-20_10:52:05'}
+{'CodiceSeriale': '04AB21BA7B3F80', 'ChiaveOrdinamento': '40_30-12-16_17:05:28'}
+{'CodiceSeriale': '04AC57523F3880', 'ChiaveOrdinamento': '40_30-12-14_15:32:14'}
+{'CodiceSeriale': '0476EAE2185080', 'ChiaveOrdinamento': '40_30-12-18_16:26:04'}
+{'CodiceSeriale': '040C45F2185085', 'ChiaveOrdinamento': '40_30-12-19_16:15:15'}
+```
+### Ingressi in una certa data
+```python
+dynamoDbClient.Table('VeronaCards').scan(
+  FilterExpression=Attr('ChiaveOrdinamento').contains('30-12-16'),
+  Limit=10
+)
+```
+risultato
+```javascript
+{'CodiceSeriale': '04AF043A9C4C84', 'ChiaveOrdinamento': '25_30-12-16_15:44:13'}
+{'CodiceSeriale': '04AF043A9C4C84', 'ChiaveOrdinamento': '28_30-12-16_17:15:49'}
+{'CodiceSeriale': '048565C27B3F80', 'ChiaveOrdinamento': '28_30-12-16_15:42:35'}
+{'CodiceSeriale': '048565C27B3F80', 'ChiaveOrdinamento': '41_30-12-16_16:32:20'}
+```
+### Ottenere un certo dispositivo
+```python
+dynamoDbClient.Table('Dispositivi').get_item(
+  TableName='Dispositivi',
+  Key={'Codice':'25','Name':'Arena'}
+)
+```
+risultato
+```javascript
+{'Codice': '25', 'Name': 'Arena'}
+```
+### Ottenere tutti i dispositivi di un certo pointOfInterest sfruttando l'indice globale secondario
+```python
+dynamoDbClient.Table('Dispositivi').query(
+  TableName='Dispositivi',
+  IndexName='IndiceName',
+  KeyConditionExpression=Key('Name').eq('Duomo'),
+  Limit=10
+)
+```
+risultato
+```javascript
+{'Codice': '31', 'Name': 'Duomo'}
+{'Codice': '103', 'Name': 'Duomo'}
+```
