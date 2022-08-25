@@ -79,7 +79,7 @@ Ho deciso di racchiudere i dati in due tabelle, che rappresentano i due principa
 ### VeronaCards
 Questa tabella contiene due tipi di item:
 * Le veronacards : Identificate dal codice seriale univoco, contengono anche la data di attivazione ed il profilo
-* Gli ingressi : Identificati dal codice seriale univoco e dal dispositivo su cui si è passata la veronacard, contiene anche la data e l'ora dell'ingresso
+* Gli ingressi : Identificati dal codice seriale univoco, ed una stringa che contiene il codice del dispositivo su cui è stata passata la veronacard, la data e l'ora 
 
 ### Dispositivi
 Questa tabella contiene solo la lista di dispositivi, identificati dal codice e dal nome del pointOfInterest
