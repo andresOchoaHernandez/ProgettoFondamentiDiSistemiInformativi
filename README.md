@@ -125,7 +125,19 @@ AttributeDefinitions
 }
 ```
 In questo caso la partition key è ```CodiceSeriale``` mentre la sort key è ```ChiaveOrdinamento```.
-Per gli item che rappresentano le veronacards la sort key assumerà il valore ```Info```, mentre per gli item che rappresentano gli ingressi la sort key sarà il codice del dispositivo su cui è stata passata la veronacard.
+Per gli item che rappresentano le veronacards la sort key assumerà il valore ```Info```, mentre per gli item che rappresentano gli ingressi la sort key sarà una stringa che contiene il dispositivo, la data e l'ora.
+
+Indice secondario globale  
+```javascript
+{
+  'IndexName' : 'IndiceChiaveOrdinamento',
+  'KeySchema' : [
+      {
+          'AttributeName': 'ChiaveOrdinamento',
+          'KeyType': 'HASH'
+      }]
+}               
+```
 
 ## Dispositivi
 KeySchema
@@ -152,3 +164,15 @@ AttributeDefinitions
 ```
 In questo caso la partition key è ```Codice``` mentre la sort key è ```Name```.
 Ogni item in questa tabella consta solo di partition e sort key.
+
+Indice secondario globale  
+```javascript
+{
+  'IndexName' : 'IndiceChiaveName',
+  'KeySchema' : [
+      {
+          'AttributeName': 'Name',
+          'KeyType': 'HASH'
+      }]
+}               
+```
