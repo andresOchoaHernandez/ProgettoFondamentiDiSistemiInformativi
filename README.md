@@ -84,6 +84,9 @@ Questa tabella contiene due tipi di item:
 ### Dispositivi
 Questa tabella contiene solo la lista di dispositivi, identificati dal codice e dal nome del pointOfInterest
 
+### Indice Secondario
+Ho deciso di creare un indice secondario su PointOfInterest.Name in modo da poter accedere a tutti i dispositivi localizzati in un certo PointOfInterest
+
 # Implementazione
 ## Installazione di DynamoDBLocal
 Ho scelto di installare DynamoDBLocal in quanto è uno strumento autocontenuto che permette agli sviluppatori di esplorare le varie features offerte da DynamoDB, e permette in modo molto semplice e veloce di avere un database funzionante. Bastano pochi comandi:  
@@ -126,18 +129,6 @@ AttributeDefinitions
 ```
 In questo caso la partition key è ```CodiceSeriale``` mentre la sort key è ```ChiaveOrdinamento```.
 Per gli item che rappresentano le veronacards la sort key assumerà il valore ```Info```, mentre per gli item che rappresentano gli ingressi la sort key sarà una stringa che contiene il dispositivo, la data e l'ora.
-
-Indice secondario globale  
-```javascript
-{
-  'IndexName' : 'IndiceChiaveOrdinamento',
-  'KeySchema' : [
-      {
-          'AttributeName': 'ChiaveOrdinamento',
-          'KeyType': 'HASH'
-      }]
-}               
-```
 
 ## Dispositivi
 KeySchema
