@@ -31,22 +31,6 @@ def create_tables(dynamoDbClient):
                     'AttributeType': 'S'
                 }
             ],
-            GlobalSecondaryIndexes = [{
-                'IndexName' : 'IndiceChiaveOrdinamento',
-                'KeySchema' : [
-                    {
-                        'AttributeName': 'ChiaveOrdinamento',
-                        'KeyType': 'HASH'
-                    }
-                ],
-                'Projection': {
-                    'ProjectionType': 'ALL'
-                },
-                'ProvisionedThroughput': {
-                    'ReadCapacityUnits': 10,
-                    'WriteCapacityUnits': 10
-                }
-            }],
             ProvisionedThroughput={
                 'ReadCapacityUnits':10,
                 'WriteCapacityUnits':10
@@ -111,7 +95,7 @@ def populate_tables(dynamoDbClient):
     listOfIngressi = []
     listOfDispositivi = {}
 
-    limit = 100
+    limit = 0
 
     for filename in glob.glob('./dataset/*.csv'):
         
@@ -179,11 +163,6 @@ def populate_tables(dynamoDbClient):
 
                 limit+=1
 
-def scan_table(dynamoDbClient,table_name):
-    response = dynamoDbClient.Table(table_name).scan()
-    for item in response['Items']:
-        print(item)
-
 def main():
 
     dynamoDbClient = boto3.resource(
@@ -196,7 +175,6 @@ def main():
 
     create_tables(dynamoDbClient)
     populate_tables(dynamoDbClient)
-    scan_table(dynamoDbClient,'VeronaCards')
 
     print(
     """
@@ -229,15 +207,6 @@ def main():
     Ingressi in una certa data
     """)
     response = dynamoDbClient.Table('VeronaCards').scan(FilterExpression=Attr('ChiaveOrdinamento').contains('30-12-16'),Limit=10)
-    for item in response['Items']:
-        print(item)
-
-
-    print(
-    """
-    Scan sulla sort key sfruttando l'indice secondario globale
-    """)
-    response = dynamoDbClient.Table('VeronaCards').scan(TableName='VeronaCards',IndexName='IndiceChiaveOrdinamento',FilterExpression=Attr('ChiaveOrdinamento').begins_with('40'),Limit=10)
     for item in response['Items']:
         print(item)
     
