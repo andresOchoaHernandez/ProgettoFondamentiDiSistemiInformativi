@@ -31,6 +31,22 @@ def create_tables(dynamoDbClient):
                     'AttributeType': 'S'
                 }
             ],
+            GlobalSecondaryIndexes = [{
+                'IndexName' : 'IndiceChiaveOrdinamento',
+                'KeySchema' : [
+                    {
+                        'AttributeName': 'ChiaveOrdinamento',
+                        'KeyType': 'HASH'
+                    }
+                ],
+                'Projection': {
+                    'ProjectionType': 'ALL'
+                },
+                'ProvisionedThroughput': {
+                    'ReadCapacityUnits': 10,
+                    'WriteCapacityUnits': 10
+                }
+            }],
             ProvisionedThroughput={
                 'ReadCapacityUnits':10,
                 'WriteCapacityUnits':10
@@ -163,7 +179,6 @@ def main():
 
     create_tables(dynamoDbClient)
     populate_tables(dynamoDbClient)
-
     scan_table(dynamoDbClient,'VeronaCards')
 
     """
@@ -196,6 +211,13 @@ def main():
     Ingressi in una certa data
     """
     response = dynamoDbClient.Table('VeronaCards').scan(FilterExpression=Attr('ChiaveOrdinamento').contains('30-12-16'))
+    for item in response['Items']:
+        print(item)
+
+    """
+    Scan sulla sort key sfruttando l'indice secondario globale
+    """
+    response = dynamoDbClient.Table('VeronaCards').scan(TableName='VeronaCards',IndexName='IndiceChiaveOrdinamento',FilterExpression=Attr('ChiaveOrdinamento').begins_with('40'))
     for item in response['Items']:
         print(item)
 
