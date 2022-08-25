@@ -78,6 +78,23 @@ def create_tables(dynamoDbClient):
                     'AttributeType': 'S'
                 }
             ],
+            GlobalSecondaryIndexes = [{
+                'IndexName' : 'IndiceName',
+                'KeySchema' : [
+                    {
+                        'AttributeName': 'Name',
+                        'KeyType': 'HASH'
+                    }
+                ],
+                'Projection': {
+                    'ProjectionType': 'ALL'
+                },
+                'ProvisionedThroughput': {
+                    'ReadCapacityUnits': 10,
+                    'WriteCapacityUnits': 10
+                }
+            }],
+
             ProvisionedThroughput={
                 'ReadCapacityUnits':10,
                 'WriteCapacityUnits':10
@@ -181,44 +198,64 @@ def main():
     populate_tables(dynamoDbClient)
     scan_table(dynamoDbClient,'VeronaCards')
 
+    print(
     """
     Ottenere una certa veronacard
-    """
+    """)
     response = dynamoDbClient.Table('VeronaCards').get_item(TableName='VeronaCards',Key={'CodiceSeriale':'04FA80523F3880','ChiaveOrdinamento':'Info'})
     print(response['Item'])
 
-    print("================================================================")
 
+    print(
     """
     Ingressi di una certa veronacard con un certo dispositivo
-    """
+    """)
     response = dynamoDbClient.Table('VeronaCards').query(TableName='VeronaCards',KeyConditionExpression= Key('CodiceSeriale').eq('04FA80523F3880')&Key('ChiaveOrdinamento').begins_with('40'))
     for item in response['Items']:
         print(item)
 
-    print("================================================================")
     
+    print(
     """
     Ingressi in un certo dispositivo
-    """
-    response = dynamoDbClient.Table('VeronaCards').scan(FilterExpression=Attr('ChiaveOrdinamento').begins_with('40'))
+    """)
+    response = dynamoDbClient.Table('VeronaCards').scan(FilterExpression=Attr('ChiaveOrdinamento').begins_with('40'),Limit=800)
     for item in response['Items']:
         print(item)
 
-    print("================================================================")
 
+    print(
     """
     Ingressi in una certa data
-    """
-    response = dynamoDbClient.Table('VeronaCards').scan(FilterExpression=Attr('ChiaveOrdinamento').contains('30-12-16'))
+    """)
+    response = dynamoDbClient.Table('VeronaCards').scan(FilterExpression=Attr('ChiaveOrdinamento').contains('30-12-16'),Limit=10)
     for item in response['Items']:
         print(item)
 
+
+    print(
     """
     Scan sulla sort key sfruttando l'indice secondario globale
-    """
-    response = dynamoDbClient.Table('VeronaCards').scan(TableName='VeronaCards',IndexName='IndiceChiaveOrdinamento',FilterExpression=Attr('ChiaveOrdinamento').begins_with('40'))
+    """)
+    response = dynamoDbClient.Table('VeronaCards').scan(TableName='VeronaCards',IndexName='IndiceChiaveOrdinamento',FilterExpression=Attr('ChiaveOrdinamento').begins_with('40'),Limit=10)
     for item in response['Items']:
+        print(item)
+    
+
+    print(
+    """
+    Ottenere un certo dispositivo
+    """)
+    response = dynamoDbClient.Table('Dispositivi').get_item(TableName='Dispositivi',Key={'Codice':'25','Name':'Arena'})
+    print(response['Item'])
+
+
+    print(
+    """
+    Ottenere tutti i dispositivi di un certo pointOfInterest sfruttando l'indice globale secondario
+    """)
+    response = dynamoDbClient.Table('Dispositivi').query(TableName='Dispositivi',IndexName='IndiceName',KeyConditionExpression=Key('Name').eq('Duomo'),Limit=10)
+    for item in response['Items']: 
         print(item)
 
 if __name__ == '__main__':
