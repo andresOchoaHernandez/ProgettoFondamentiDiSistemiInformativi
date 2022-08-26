@@ -167,7 +167,7 @@ Indice secondario globale
       }]
 }               
 ```
-## Query Semplici
+## Query semplici
 ### Ottenere una certa veronacard
 ```python
 dynamoDbClient.Table('VeronaCards').get_item(
