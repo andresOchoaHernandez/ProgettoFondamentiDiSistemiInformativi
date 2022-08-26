@@ -21,6 +21,16 @@ Tutti i file rispettano la stessa struttura, in cui ogni record contiene:
 - Data di attivazione della VeronaCard
 - Profilo della VeronaCard (24-48-72 Ore)
 
+## Nota  
+Oltre agli attributi soprastanti, i file presentano anche:
+* una colonna che denota il tipo di strisciata
+* una colonna che denota il tipo di sconto (i cui valori sono 0,1,2)  
+
+Ho deciso di non considerare questi due attributi in quanto:
+* La prima colonna citata presenta sempre lo stesso valore "in" in ogni tupla di ogni file, ed essendo una collezione di ingressi, mi è sembrato ridondante considerarla
+* Nella consegna non erano specificate, perciò ho assunto avessero poca rilevanza  
+
+In caso, queste due informazioni, possono comunque essere integrate facilmente. 
 ## Schema concettuale del dataset
 <p align="center">
   <img src="schemaconcettualeveronacard.png" />
@@ -98,6 +108,13 @@ user@desktop:~$ tar xzf dynamodb_local_latest.tar.gz
 user@desktop:~$ java -Djava.library.path=./DynamoDBLocal_lib/ -jar DynamoDBLocal.jar
 ```
 A questo punto è attivo il servizio sulla porta ```8000``` che ci permette di interagire con il database.
+
+## Perfomance DynamoDBLocal
+Essendo uno strumento di sviluppo con l'obbiettivo di esplorare l'api di DynamoDB, purtoppo non è ottimizzato per immagazzinare grandi quantità di dati.
+Difatti ho provato a caricare tutto il file ```dati_2014.csv``` lasciando il programma girare per qualche ora, ma non ha nemmeno terminato. Questo perché, stando a fonti online, DynamoDBLocal si appoggia a SQLite in cui le operazioni di scrittura sono abbastanza lente.
+Per questo, nella fase iniziale, ho implementato il caricarimento dei dati mettendo un limite delle tuple considerate per file. Perciò:
+* La tabella *VeronaCards* avrà sicuramente #items > Limit (**Limit** ingressi + **Limit** >= #veronacards)
+* La tabella *Dispositivi* avrà sicuramente #items < Limit perché ce ne sono solo qualche decina
 
 ## Linguaggio di programmazione e client
 Come linguaggio di programmazione ho scelto ```python``` e come client per interagire con il database ho scelto ```boto3```
