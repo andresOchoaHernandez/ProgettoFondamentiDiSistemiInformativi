@@ -176,7 +176,7 @@ Ogni item in questa tabella consta solo di partition e sort key.
 Indice secondario globale  
 ```javascript
 {
-  'IndexName' : 'IndiceChiaveName',
+  'IndexName' : 'IndiceName',
   'KeySchema' : [
       {
           'AttributeName': 'Name',
