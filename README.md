@@ -1,4 +1,4 @@
-# ProgettoFondamentiDiSistemiInformativi
+# Progetto fondamenti di sistemi informativi
 Progetto per il corso di fondamenti di sistemi informativi ad UniVr
 
 ## Obbiettivo
