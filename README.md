@@ -266,7 +266,7 @@ risultato
 {'Codice': '103', 'Name': 'Duomo'}
 ```
 ## Caricamento dati su AWS DynamoDB
-Una volta testato il caricamento dei dati su DynamoDBLocal, ho deciso di provare il vero e proprio sistema offerto da Amazon. Questo ha richiesto la creazione di un account AWS che permette di usufruire gratuitamente gli amazon web services entro certi limiti utilizzo. Per quanto riguarda DynamoDB, il free tier comprende 25 GB di storage, e tabelle con una Provisioned Write Capacity pari a 25 unità, stessa cosa per la Read Capacity.
+Una volta testato il caricamento dei dati su DynamoDBLocal, ho deciso di provare il vero e proprio sistema offerto da Amazon. Questo ha richiesto la creazione di un account AWS che permette di usufruire gratuitamente degli amazon web services entro certi limiti utilizzo. Per quanto riguarda DynamoDB, il free tier comprende 25 GB di storage, e tabelle con una Provisioned Write Capacity pari a 25 unità, stessa cosa per la Read Capacity.
 Ho modificato il file ```loadDataset.py``` inserendo le credenziali del mio account alla creazione del client ed ho avviato il programma. All'inizio le WCU e le RCU delle tabelle erano impostate a 10, poi le ho modificate a 24 per VeronaCards ed a 5 per Dispositivi. Il programma è stato fermato dopo aver eseguito per un intero weekend. Sono stati caricati:
 * 1.741.376 item nella tabella VeronaCards (il totale dei record nel dataset supera i 5M)
 * 29 iem nella tabella Dispositivi
