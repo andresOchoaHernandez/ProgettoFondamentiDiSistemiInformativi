@@ -265,3 +265,20 @@ risultato
 {'Codice': '31', 'Name': 'Duomo'}
 {'Codice': '103', 'Name': 'Duomo'}
 ```
+## Caricamento dati su AWS DynamoDB
+Una volta testato il caricamento dei dati su DynamoDBLocal, ho deciso di provare il vero e proprio sistema offerto da Amazon. Questo ha richiesto la creazione di un account AWS che permette di usufruire gratuitamente gli amazon web services entro certi limiti utilizzo. Per quanto riguarda DynamoDB, il free tier comprende 25 GB di storage, e tabelle con una Provisioned Write Capacity pari a 25 unità, stessa cosa per la Read Capacity.
+Ho modificato il file ```loadDataset.py``` inserendo le credenziali del mio account alla creazione del client ed ho avviato il programma. All'inizio le WCU e le RCU delle tabelle erano impostate a 10, poi le ho modificate a 24 per VeronaCards ed a 5 per Dispositivi. Il programma è stato fermato dopo aver eseguito per un intero weekend. Sono stati caricati:
+* 1.741.376 item nella tabella VeronaCards (il totale dei record nel dataset supera i 5M)
+* 29 iem nella tabella Dispositivi
+Che ho ritenuto sufficienti per poter testare le query.
+
+## Query
+
+### Query 1
+Assegnato un mese di un anno, trovare per ogni giorno del mese il numero totale di accessi ai due POI dati in input
+
+### Query 2
+Trovare il POI che ha avuto il numero minimo e il POI che ha avuto il numero massimo di accessi in un giorno assegnato
+
+### Query 3
+Dato un profilo, TROVARE i codici delle veronacard (id) con quel profilo che hanno fatto almeno tre strisciate in uno stesso giorno, riportando il numero totale delle strisciate eseguite da quelle carte e il giorno il cui sono state fatte le tre strisciate
