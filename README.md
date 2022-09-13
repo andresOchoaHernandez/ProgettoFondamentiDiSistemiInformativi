@@ -274,12 +274,59 @@ Ho modificato il file ```loadDataset.py``` inserendo le credenziali del mio acco
 Che ho ritenuto sufficienti per poter testare le query.
 
 ## Query
+Per avere una conferma della correttezza delle query, ho caricato il file ```dati_2014.csv``` su postgres e prima di scriverle per DynamoDB, le ho scritte in SQL annotandomi il risultato.
 
 ### Query 1
 Assegnato un mese di un anno, trovare per ogni giorno del mese il numero totale di accessi ai due POI dati in input
+#### SQL
+```SQL
+SELECT data,COUNT(*)
+FROM ingressi
+WHERE data >= '1-12-14' AND data <= '31-12-14' AND pointofinterest = 'Tomba Giulietta'
+GROUP BY data;
+
+SELECT data,COUNT(*)
+FROM ingressi
+WHERE data >= '1-12-14' AND data <= '31-12-14' AND pointofinterest = 'Casa Giulietta'
+GROUP BY data;
+```
+#### DynamoDB
 
 ### Query 2
 Trovare il POI che ha avuto il numero minimo e il POI che ha avuto il numero massimo di accessi in un giorno assegnato
 
+#### SQL
+```SQL
+SELECT pointofinterest, COUNT(*) AS ingressi
+FROM ingressi
+WHERE data = '30-12-14'
+GROUP BY pointofinterest
+HAVING COUNT(*) = (
+	SELECT MIN(conteggio)
+	FROM (
+		SELECT i1.pointofinterest AS poi,COUNT(*) AS conteggio
+		FROM ingressi i1
+		WHERE data = '30-12-14'
+		GROUP BY pointofinterest
+	) AS conteggi
+);
+
+SELECT pointofinterest, COUNT(*) AS ingressi
+FROM ingressi
+WHERE data = '30-12-14'
+GROUP BY pointofinterest
+HAVING COUNT(*) = (
+	SELECT MAX(conteggio)
+	FROM (
+		SELECT i1.pointofinterest AS poi,COUNT(*) AS conteggio
+		FROM ingressi i1
+		WHERE data = '30-12-14'
+		GROUP BY pointofinterest
+	) AS conteggi
+);
+```
+#### DynamoDB
+
 ### Query 3
 Dato un profilo, TROVARE i codici delle veronacard (id) con quel profilo che hanno fatto almeno tre strisciate in uno stesso giorno, riportando il numero totale delle strisciate eseguite da quelle carte e il giorno il cui sono state fatte le tre strisciate
+#### DynamoDB
