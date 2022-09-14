@@ -276,6 +276,12 @@ Che ho ritenuto sufficienti per poter testare le query.
 ## Query
 Per avere una conferma della correttezza delle query, ho caricato il file ```dati_2014.csv``` su postgres e prima di scriverle per DynamoDB, le ho scritte in SQL annotandomi il risultato.
 
+### Nota
+
+#### DynamoDBLocal
+È possibile avviare DynamoDBLocal con l'opzione ```-inMemory```, che evita di scrivere su disco i dati e li mantiene in RAM. Questo permette di ovviare al problema delle perfomance di cui ho parlato sopra, permettendomi di testare velocemente le query.
+#### AWS DynamoDB
+Alla creazione dell'account, la zona di default è ```us-east-1```, che purtroppo non ho cambiato. Visto che i server sono lontani, la latenza influisce molto sulle performance delle query
 ### Query 1
 Assegnato un mese di un anno, trovare per ogni giorno del mese il numero totale di accessi ai due POI dati in input
 #### SQL
@@ -291,6 +297,53 @@ WHERE data >= '1-12-14' AND data <= '31-12-14' AND pointofinterest = 'Casa Giuli
 GROUP BY data;
 ```
 #### DynamoDB
+```python
+def find_enterings_in_POI(veronaCardsTable,dispositiviTable,month,year,POI):
+
+    # TROVO IL CODICE DEL DISPOSITIVO DEL POI
+    response = dispositiviTable.query(
+        IndexName = 'IndiceName',
+        KeyConditionExpression = Key('Name').eq(POI)
+    )
+
+    dispositivo = response['Items'][0]['Codice']
+
+    # TROVO GLI INGRESSI EFFETTUATI SU QUEL DISPOSITIVO, NEL MESE E ANNO INDICATI
+    response = veronaCardsTable.scan(
+        FilterExpression = Attr('ChiaveOrdinamento').begins_with(dispositivo)&Attr('ChiaveOrdinamento').contains('-'+month+'-'+year+'_')
+    )
+    ingressi = response['Items']
+
+    while 'LastEvaluatedKey' in response:
+        response = veronaCardsTable.scan(
+            ExclusiveStartKey=response['LastEvaluatedKey'],
+            FilterExpression = Attr('ChiaveOrdinamento').begins_with(dispositivo)&Attr('ChiaveOrdinamento').contains('-'+month+'-'+year+'_')
+        )
+        ingressi.extend(response['Items'])
+
+    # COSTRUISCO UNA MAPPA AVENTE COME CHIAVE LA DATA E COME VALORE IL CONTEGGIO DEGLI INGRESSI
+    output = {}
+
+    for item in ingressi:
+        date = re.search(r'(\d+-\d+-\d+)',item['ChiaveOrdinamento']).group()
+
+        if date not in output.keys():
+            output[date] = 1
+        else:
+            output[date] = output[date] + 1 
+
+    output = dict(sorted(output.items()))
+
+    return output
+```
+Questa funzione viene chiamata due volte per ottenere l'output finale
+```python
+out1 = find_enterings_in_POI(veronaCardsTable,dispositiviTable,'12','14','Tomba Giulietta')
+out2 = find_enterings_in_POI(veronaCardsTable,dispositiviTable,'12','14','Casa Giulietta')
+```
+#### Perfomance
+* DynamoDBLocal : 50s
+* AWS DynamoDB  : 734s
 
 ### Query 2
 Trovare il POI che ha avuto il numero minimo e il POI che ha avuto il numero massimo di accessi in un giorno assegnato
@@ -326,7 +379,135 @@ HAVING COUNT(*) = (
 );
 ```
 #### DynamoDB
+```python
+# TROVO TUTTI GLI INGRESSI DEL GIORNO D'INTERESSE
+response = veronaCardsTable.scan(
+    FilterExpression = Attr('ChiaveOrdinamento').contains('_30-12-14_')
+)
+ingressi = response['Items']
+
+while 'LastEvaluatedKey' in response:
+    response = veronaCardsTable.scan(
+        ExclusiveStartKey=response['LastEvaluatedKey'],
+        FilterExpression = Attr('ChiaveOrdinamento').contains('_30-12-14_')
+    )
+    ingressi.extend(response['Items'])
+
+# RICOSTRUISCO UNA MAPPA AVENTE I POI COME CHIAVE E LA LISTA DI DISPOSITIVI COME VALORE
+response = dispositiviTable.scan()
+
+pointOfinterest = {}
+for item in response['Items']:
+    if item['Name'] not in pointOfinterest.keys():
+        pointOfinterest[item['Name']] = [item['Codice']]
+    else:
+        pointOfinterest[item['Name']].append(item['Codice'])
+
+# INIZIALIZZO UNA MAPPA CHE CONTA I GLI INGRESSI PER OGNI POI
+ingressiPerPOI = {}
+for poi in pointOfinterest.keys():
+    ingressiPerPOI[poi] = 0
+
+# PER OGNI INGRESSO TROVATO, CONTROLLO A QUALE POI FA RIFERIMENTO E AUMENTO IL CONTATORE DEGLI INGRESSI PER QUEL POI
+for item in ingressi:
+    dispositivo = re.search(r'(\d+_)',item['ChiaveOrdinamento']).group()[:-1]
+    for poi in pointOfinterest.keys():
+        if dispositivo in pointOfinterest[poi]:
+	    ingressiPerPOI[poi] = ingressiPerPOI[poi] + 1 
+
+# NON TUTTI I POI PRESENTI NEL SISTEMA SONO STATI ACCEDUTI NEL GIORNO D'INTERESSE, PERCIÒ LI ELIMINIAMO
+keysToDelete = []
+for poi in ingressiPerPOI.keys():
+    if ingressiPerPOI[poi] == 0:
+        keysToDelete.append(poi)
+
+for key in keysToDelete:
+    del ingressiPerPOI[key]
+
+# TROVO IL MASSIMO ED IL MINIMO
+min = sys.maxsize
+place = ''
+
+for poi in ingressiPerPOI.keys():
+    if ingressiPerPOI[poi] < min:
+        min = ingressiPerPOI[poi]
+        place = poi
+
+print('POI che ha registrato il minimo numero di ingressi nel giorno 30-12-14:')
+print((place,min))
+
+max = 0
+place = ''
+for poi in ingressiPerPOI.keys():
+    if ingressiPerPOI[poi] > max:
+        max = ingressiPerPOI[poi]
+        place = poi
+
+print('POI che ha registrato il massimo numero di ingressi nel giorno 30-12-14:')
+print((place,max))
+```
+#### Perfomance
+* DynamoDBLocal : 25s
+* AWS DynamoDB  : 400s
 
 ### Query 3
 Dato un profilo, TROVARE i codici delle veronacard (id) con quel profilo che hanno fatto almeno tre strisciate in uno stesso giorno, riportando il numero totale delle strisciate eseguite da quelle carte e il giorno il cui sono state fatte le tre strisciate
+#### SQL
+```SQL
+SELECT codiceseriale,data, count(*) as ingressi
+FROM ingressi
+GROUP BY codiceseriale,data
+HAVING COUNT(*) >=3
+```
+
 #### DynamoDB
+```python
+# TROVO TUTTE LE VERONACARDS CHE HANNO IL PROFILO RICHIESTO
+response = veronaCardsTable.scan(
+    FilterExpression=Attr('Profilo').eq('24 Ore'),
+    ProjectionExpression='CodiceSeriale'
+)
+
+veronaCards = response['Items']
+
+while 'LastEvaluatedKey' in response:
+    response = veronaCardsTable.scan(
+        FilterExpression=Attr('Profilo').eq('24 Ore'),
+        ProjectionExpression='CodiceSeriale'
+    )
+    veronaCards.extend(response['Items'])
+
+output = {}
+
+for item in veronaCards:
+    veronaCard = item['CodiceSeriale']
+
+    # TROVO GLI INGRESSI PER LA VERONACARD CORRENTE, FILTRANDO L'ITEM CHE CONTIENE LE INFO DELLA VERONACARD STESSA
+    response = veronaCardsTable.query(
+        KeyConditionExpression=Key('CodiceSeriale').eq(veronaCard),
+        FilterExpression=Attr('Profilo').ne('24 Ore')
+    )
+
+    ingressi = response['Items']
+
+    # CONSIDERO LE VERONACARDS CHE ABBIANO MINIMO 3 INGRESSI REGISTRATI
+    if len(ingressi) < 3 :
+        continue 
+
+    # CONTO GLI INGRESSI PER OGNI DATA DISTINTA, **PER SEMPLICITÀ IMPLEMENTATIVA** PRENDO IN CONSIDERAZIONE 
+    # SOLO LA PRIMA DATA CHE ABBIA MINIMO 3 INGRESSI      
+    dateIngressi = [re.search(r'(\d+-\d+-\d+)',item['ChiaveOrdinamento']).group() for item in ingressi]
+
+    ingressiPerGiorno = Counter(dateIngressi)
+
+    for data in ingressiPerGiorno.keys():
+        if ingressiPerGiorno[data] >= 3 :
+	    output[veronaCard] = (data,ingressiPerGiorno[data])
+	    break
+
+for codiceSeriale in output.keys():
+    print(f'{codiceSeriale} : {output[codiceSeriale]}')
+```
+#### Perfomance
+* DynamoDBLocal : ?
+* AWS DynamoDB  : ?
