@@ -26,6 +26,7 @@ def query3(veronaCardsTable):
 
     while 'LastEvaluatedKey' in response:
         response = veronaCardsTable.scan(
+            ExclusiveStartKey=response['LastEvaluatedKey'],
             FilterExpression=Attr('Profilo').eq('24 Ore'),
             ProjectionExpression='CodiceSeriale'
         )
