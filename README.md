@@ -472,6 +472,7 @@ veronaCards = response['Items']
 
 while 'LastEvaluatedKey' in response:
     response = veronaCardsTable.scan(
+        ExclusiveStartKey=response['LastEvaluatedKey'],
         FilterExpression=Attr('Profilo').eq('24 Ore'),
         ProjectionExpression='CodiceSeriale'
     )
@@ -509,5 +510,5 @@ for codiceSeriale in output.keys():
     print(f'{codiceSeriale} : {output[codiceSeriale]}')
 ```
 #### Perfomance
-* DynamoDBLocal : ?
+* DynamoDBLocal : 88s
 * AWS DynamoDB  : ?
