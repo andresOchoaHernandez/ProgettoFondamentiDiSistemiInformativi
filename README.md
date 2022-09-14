@@ -403,7 +403,7 @@ for item in response['Items']:
     else:
         pointOfinterest[item['Name']].append(item['Codice'])
 
-# INIZIALIZZO UNA MAPPA CHE CONTA I GLI INGRESSI PER OGNI POI
+# INIZIALIZZO UNA MAPPA CHE CONTA GLI INGRESSI PER OGNI POI
 ingressiPerPOI = {}
 for poi in pointOfinterest.keys():
     ingressiPerPOI[poi] = 0
