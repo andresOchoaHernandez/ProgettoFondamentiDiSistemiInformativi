@@ -453,6 +453,14 @@ print((place,max))
 ### Query 3
 Dato un profilo, TROVARE i codici delle veronacard (id) con quel profilo che hanno fatto almeno tre strisciate in uno stesso giorno, riportando il numero totale delle strisciate eseguite da quelle carte e il giorno il cui sono state fatte le tre strisciate
 
+#### SQL
+```SQL
+SELECT codiceseriale,data, COUNT(*) as ingressi
+FROM ingressi
+WHERE profilo = '24 Ore'
+GROUP BY codiceseriale,data
+HAVING COUNT(*) >=3
+```
 #### DynamoDB
 ```python
 # TROVO TUTTE LE VERONACARDS CHE HANNO IL PROFILO RICHIESTO
